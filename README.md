@@ -35,4 +35,3 @@ You can deploy these models on Amazon SageMaker in different ways:
    * This is the recommended approach if you cannot access Hugging Face in your AWS account, or if you want to start from an official package built and tested by Arcee.
    * You first need to subscribe to the model
    * You can then deploy the model using the built-in option, or with the sample notebooks in `model_package_notebooks`
-   * This is the recommended approach if you cannot access Hugging Face in your AWS account, of if you prefer to deploy an official model package built and tested by Arcee.
