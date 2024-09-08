@@ -1,0 +1,186 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'CloudFormation template to deploy a model from the Hugging Face Hub on SageMaker with TGI'
+
+Mappings:
+  InstanceTypeToGPUs:
+    ml.g5.xlarge:  { GPUs: '1' }
+    ml.g5.2xlarge:  { GPUs: '1' }
+    ml.g5.4xlarge:  { GPUs: '1' }
+    ml.g5.8xlarge:  { GPUs: '1' }
+    ml.g5.12xlarge: { GPUs: '4' }
+    ml.g5.16xlarge: { GPUs: '1' }
+    ml.g5.24xlarge: { GPUs: '4' }
+    ml.g5.48xlarge: { GPUs: '8' }
+    ml.g6.xlarge: { GPUs: '1' }
+    ml.g6.2xlarge: { GPUs: '1' }
+    ml.g6.4xlarge: { GPUs: '1' }
+    ml.g6.8xlarge: { GPUs: '1' }
+    ml.g6.12xlarge: { GPUs: '4' }
+    ml.g6.16xlarge: { GPUs: '1' }
+    ml.g6.24xlarge: { GPUs: '4' }
+    ml.g6.48xlarge: { GPUs: '8' }
+    ml.g6e.xlarge: { GPUs: '1' }
+    ml.g6e.2xlarge: { GPUs: '1' }
+    ml.g6e.4xlarge: { GPUs: '1' }
+    ml.g6e.8xlarge: { GPUs: '1' }
+    ml.g6e.12xlarge: { GPUs: '4' }
+    ml.g6e.16xlarge: { GPUs: '1' }
+    ml.g6e.24xlarge: { GPUs: '4' }
+    ml.g6e.48xlarge: { GPUs: '8' }
+    ml.p4d.24xlarge: { GPUs: '8' }
+    ml.p4de.24xlarge: { GPUs: '8' }
+    ml.p5.24xlarge: { GPUs: '8' }
+
+Parameters:
+  ModelId:
+    Type: String
+    Description: The Hugging Face model ID (e.g., "arcee-ai/Arcee-Nova")
+    ConstraintDescription: ModelId must be a valid Hugging Face model ID
+
+  HuggingFaceToken:
+    Type: String
+    Description: A Hugging Face token (only needed for private models)
+    ConstraintDescription: HuggingFaceToken must be a valid Hugging Face token
+
+  EndpointNamePrefix:
+    Type: String
+    Description: A prefix for the SageMaker endpoint name
+    AllowedPattern: "[a-zA-Z0-9-]+"
+    Default: "tgi-endpoint"
+    ConstraintDescription: EndpointNamePrefix must contain only alphanumeric characters and hyphens
+
+  InstanceType:
+    Type: String
+    Description: The Amazon EC2 instance type to use for hosting the model (e.g., ml.t3.medium, ml.g4dn.xlarge)
+    AllowedPattern: "ml\\.[a-zA-Z0-9-.]+"
+    Default: "ml.g5.2xlarge"
+    ConstraintDescription: InstanceType must start with 'ml.' followed by instance type (e.g., ml.t3.medium)
+
+  InitialInstanceCount:
+    Type: String
+    Description: The initial number of EC2 instances to launch for the endpoint (1-16)
+    AllowedPattern: "^([1-9]|1[0-6])$"
+    Default: "1"
+    ConstraintDescription: InitialInstanceCount must be an integer between 1 and 16
+
+  ModelEnvironmentDataType:
+    Type: String
+    Description: The numerical precision format for the model weights (float16 or bfloat16)
+    AllowedValues:
+      - float16
+      - bfloat16
+    Default: "bfloat16"
+    ConstraintDescription: ModelEnvironmentDataType must be 'float16' or 'bfloat16'
+
+  ModelEnvironmentMaxInputLength:
+    Type: String
+    Description: The maximum sequence length the model can process (in tokens)
+    AllowedPattern: "^[1-9][0-9]*$"
+    Default: "4096"
+    ConstraintDescription: ModelEnvironmentMaxInputLength must be a positive integer
+
+  ModelEnvironmentMaxTotalTokens:
+    Type: String
+    Description: The maximum total number of tokens the model can process (in tokens)
+    AllowedPattern: "^[1-9][0-9]*$"
+    Default: "8192"
+    ConstraintDescription: ModelEnvironmentMaxTotalTokens must be a positive integer
+
+  ModelEnvironmentTrustRemoteCode:
+    Type: String
+    Description: Whether to allow the model to execute remote code (true or false)
+    AllowedValues: ["true", "false"]
+    Default: "true"
+    ConstraintDescription: ModelEnvironmentTrustRemoteCode must be 'true' or 'false'
+
+  ModelEnvironmentMaxConcurrentRequests:
+    Type: String
+    Description: The maximum number of concurrent requests the model can process
+    AllowedPattern: "^[1-9][0-9]*$"
+    Default: "128"
+    ConstraintDescription: ModelEnvironmentMaxConcurrentRequests must be a positive integer
+
+  ModelEnvironmentMessagesApiEnabled:
+    Type: String
+    Description: Whether to enable the OpenAI Messages API
+    AllowedValues: ["true", "false"]
+    Default: "true"
+    ConstraintDescription: ModelEnvironmentMessagesApiEnabled must be 'true' or 'false'
+
+  ModelEnvironmentHfModelQuantize:
+    Type: String
+    Description: The quantization format for the model weights (leave empty for no quantization)
+    AllowedValues: ["", "bitsandbytes", "bitsandbytes-nf4", "bitsandbytes-np4", "awq", "gptq"]
+    Default: ""
+    ConstraintDescription: ModelEnvironmentHfModelQuantize must be '', 'bitsandbytes', 'bitsandbytes-nf4', 'bitsandbytes-np4', 'awq', or 'gptq'
+
+Resources:
+  SageMakerModel:
+    Type: AWS::SageMaker::Model
+    Properties:
+      PrimaryContainer:
+        Image: !Sub "763104351884.dkr.ecr.${AWS::Region}.amazonaws.com/huggingface-pytorch-tgi-inference:2.3.0-tgi2.2.0-gpu-py310-cu121-ubuntu22.04-v2.0"
+        Environment:
+          "HF_MODEL_ID": !Ref ModelId
+          "HF_TOKEN": !Ref HuggingFaceToken
+          "HF_DTYPE": !Ref ModelEnvironmentDataType
+          "MAX_INPUT_LENGTH": !Ref ModelEnvironmentMaxInputLength
+          "MAX_TOTAL_TOKENS": !Ref ModelEnvironmentMaxTotalTokens
+          "HF_TRUST_REMOTE_CODE": !Ref ModelEnvironmentTrustRemoteCode
+          "HF_MAX_CONCURRENT_REQUESTS": !Ref ModelEnvironmentMaxConcurrentRequests
+          "MESSAGES_API_ENABLED": !Ref ModelEnvironmentMessagesApiEnabled
+          "HF_MODEL_QUANTIZE": !Ref ModelEnvironmentHfModelQuantize
+          "SM_NUM_GPUS": !FindInMap [InstanceTypeToGPUs, !Ref InstanceType, GPUs]
+      ExecutionRoleArn: !GetAtt SageMakerExecutionRole.Arn
+
+  SageMakerEndpointConfig:
+    Type: AWS::SageMaker::EndpointConfig
+    Properties:
+      ProductionVariants:
+        - InitialInstanceCount: !Ref InitialInstanceCount
+          InstanceType: !Ref InstanceType
+          ModelName: !GetAtt SageMakerModel.ModelName
+          VariantName: AllTraffic
+          InitialVariantWeight: 1
+
+  SageMakerEndpoint:
+    Type: AWS::SageMaker::Endpoint
+    Properties:
+      EndpointName:
+        Fn::Join:
+          - "-"
+          - - !Ref EndpointNamePrefix
+            - !Select [2, !Split ["/", !Ref "AWS::StackId"]]
+      EndpointConfigName: !GetAtt SageMakerEndpointConfig.EndpointConfigName
+
+  SageMakerExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - sagemaker.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonSageMakerFullAccess
+      Policies:
+        - PolicyName: S3ReadAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:GetBucketLocation
+                  - s3:ListBucket
+                Resource:
+                  - arn:aws:s3:::*
+
+Outputs:
+  EndpointName:
+    Description: Name of the SageMaker Endpoint
+    Value: !GetAtt SageMakerEndpoint.EndpointName

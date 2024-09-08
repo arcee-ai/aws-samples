@@ -1,0 +1,152 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'CloudFormation template to deploy a SageMaker model package'
+
+Parameters:
+  ModelArtifact:
+    Type: String
+    Description: The S3 URI of the model artifact (tar.gz file)
+    AllowedPattern: "s3://[a-zA-Z0-9.-]+(/[a-zA-Z0-9._-]+)*"
+    ConstraintDescription: ModelArtifact must be a valid S3 URI (e.g., s3://bucket-name/path/to/model.tar.gz)
+
+  EndpointNamePrefix:
+    Type: String
+    Description: A prefix for the SageMaker endpoint name
+    AllowedPattern: "[a-zA-Z0-9-]+"
+    Default: "djl-vllm-endpoint"
+    ConstraintDescription: EndpointNamePrefix must contain only alphanumeric characters and hyphens
+
+  InstanceType:
+    Type: String
+    Description: The Amazon EC2 instance type to use for hosting the model (e.g., ml.t3.medium, ml.g4dn.xlarge)
+    AllowedPattern: "ml\\.[a-zA-Z0-9-.]+"
+    Default: "ml.g5.2xlarge"
+    ConstraintDescription: InstanceType must start with 'ml.' followed by instance type (e.g., ml.t3.medium)
+
+  InitialInstanceCount:
+    Type: String
+    Description: The initial number of EC2 instances to launch for the endpoint (1-16)
+    AllowedPattern: "^([1-9]|1[0-6])$"
+    Default: "1"
+    ConstraintDescription: InitialInstanceCount must be an integer between 1 and 16
+
+  ModelEnvironmentDataType:
+    Type: String
+    Description: The numerical precision format for the model weights (fp32 for single precision, fp16 or bf16 for half precision)
+    AllowedValues:
+      - fp32
+      - fp16
+      - bf16
+    Default: "bf16"
+    ConstraintDescription: ModelEnvironmentDataType must be 'fp32', 'fp16', or 'bf16'
+
+  ModelEnvironmentMaxModelLen:
+    Type: String
+    Description: The maximum sequence length the model can process (in tokens)
+    AllowedPattern: "^[1-9][0-9]*$"
+    Default: "4096"
+    ConstraintDescription: ModelEnvironmentMaxModelLen must be a positive integer
+
+  ModelEnvironmentTrustRemoteCode:
+    Type: String
+    Description: Whether to allow the model to execute remote code (true or false)
+    AllowedValues: ["true", "false"]
+    Default: "true"
+    ConstraintDescription: ModelEnvironmentTrustRemoteCode must be 'true' or 'false'
+
+  ModelEnvironmentRollingBatch:
+    Type: String
+    Description: Inference engine
+    AllowedValues:
+      - vllm
+    Default: "vllm"
+    ConstraintDescription: ModelEnvironmentRollingBatch must be 'vllm'
+
+  ModelEnvironmentTensorParallelDegree:
+    Type: String
+    Description: The degree of tensor parallelism for distributed inference (1-8 or 'max' for auto-selection)
+    AllowedPattern: "^([1-8]|max)$"
+    Default: "max"
+    ConstraintDescription: ModelEnvironmentTensorParallelDegree must be an integer between 1 and 8, or 'max'
+
+  ModelEnvironmentMaxRollingBatchSize:
+    Type: String
+    Description: The maximum number of requests to process simultaneously in a rolling batch
+    AllowedPattern: "^([1-9]|[1-9][0-9]|1[0-1][0-9]|12[0-8])$"
+    Default: "16"
+    ConstraintDescription: ModelEnvironmentMaxRollingBatchSize must be a positive integer
+
+  ModelEnvironmentQuantize:
+    Type: String
+    Description: The quantization format for the model weights (leave empty for no quantization)
+    AllowedValues: ["", "awq"]
+    Default: ""
+    ConstraintDescription: ModelEnvironmentQuantize must be '', 'awq'
+
+Resources:
+  SageMakerModel:
+    Type: AWS::SageMaker::Model
+    Properties:
+      PrimaryContainer:
+        Image: !Sub "763104351884.dkr.ecr.${AWS::Region}.amazonaws.com/djl-inference:0.29.0-lmi11.0.0-cu124"
+        ModelDataUrl: !Ref ModelArtifact
+        Environment:
+          "OPTION_DTYPE": !Ref ModelEnvironmentDataType
+          "OPTION_MAX_MODEL_LEN": !Ref ModelEnvironmentMaxModelLen
+          "OPTION_TRUST_REMOTE_CODE": !Ref ModelEnvironmentTrustRemoteCode
+          "OPTION_ROLLING_BATCH": !Ref ModelEnvironmentRollingBatch
+          "TENSOR_PARALLEL_DEGREE": !Ref ModelEnvironmentTensorParallelDegree
+          "OPTION_MAX_ROLLING_BATCH_SIZE": !Ref ModelEnvironmentMaxRollingBatchSize
+          "OPTION_QUANTIZE": !Ref ModelEnvironmentQuantize
+      ExecutionRoleArn: !GetAtt SageMakerExecutionRole.Arn
+
+  SageMakerEndpointConfig:
+    Type: AWS::SageMaker::EndpointConfig
+    Properties:
+      ProductionVariants:
+        - InitialInstanceCount: !Ref InitialInstanceCount
+          InstanceType: !Ref InstanceType
+          ModelName: !GetAtt SageMakerModel.ModelName
+          VariantName: AllTraffic
+          InitialVariantWeight: 1
+
+  SageMakerEndpoint:
+    Type: AWS::SageMaker::Endpoint
+    Properties:
+      EndpointName:
+        Fn::Join:
+          - "-"
+          - - !Ref EndpointNamePrefix
+            - !Select [2, !Split ["/", !Ref "AWS::StackId"]]
+      EndpointConfigName: !GetAtt SageMakerEndpointConfig.EndpointConfigName
+
+  SageMakerExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - sagemaker.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonSageMakerFullAccess
+      Policies:
+        - PolicyName: S3ReadAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:GetBucketLocation
+                  - s3:ListBucket
+                Resource:
+                  - arn:aws:s3:::*
+
+Outputs:
+  EndpointName:
+    Description: Name of the SageMaker Endpoint
+    Value: !GetAtt SageMakerEndpoint.EndpointName
