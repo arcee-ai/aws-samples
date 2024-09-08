@@ -1,5 +1,6 @@
 This repository contains developer resources to work with Arcee models on AWS. It includes sample notebooks demonstrating how to deploy and use various Arcee models on Amazon SageMaker.
 
+
 ## Models
 
 The following Arcee models are featured in the sample notebooks:
@@ -16,30 +17,12 @@ The following Arcee models are featured in the sample notebooks:
 
 6. [Arcee-Agent](https://huggingface.co/arcee-ai/Arcee-Agent): A 7B parameter model specifically designed for function calling and tool use, excelling at interpreting and executing function calls.
 
-## Sample Notebooks
+## Deployment options
 
-Each model has a corresponding sample notebook demonstrating how to deploy and use it on Amazon SageMaker:
+You can deploy these models on Amazon SageMaker in two ways:
 
-These notebooks guide you through the process of:
-- Importing necessary dependencies
-- Creating a SageMaker endpoint
-- Performing real-time inference
-- Visualizing the model output
-- Cleaning up resources
-
-## Usage
-
-To use these sample notebooks:
-
-1. Ensure you have access to Amazon SageMaker.
-2. Clone this repository in Amazon SageMaker Studio or a SageMaker Notebook Instance.
-2. Open the desired notebook.
-3. Follow the instructions within each notebook to deploy and interact with the chosen Arcee model.
-4. Add your own prompts and keep testing :)
-
-## Prerequisites
-
-An AWS account with access to Amazon SageMaker
+1. Dowloading the model from Hugging Face and using the `model_notebooks` notebooks.
+2. Subscribing to the model package in the [AWS Marketplace](https://aws.amazon.com/marketplace/seller-profile?id=seller-r7b33ivdczgs6) and using the `model_package_notebooks` notebooks.
 
 ## Contact
 
