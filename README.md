@@ -22,7 +22,7 @@ The following Arcee models are featured in the sample notebooks:
 You can deploy these models on Amazon SageMaker in two ways:
 
 1. Dowloading the model from Hugging Face with the `model_notebooks` notebooks.
-2. Subscribing to the model package in the [AWS Marketplace](https://aws.amazon.com/marketplace/seller-profile?id=seller-r7b33ivdczgs6) and using the `model_package_notebooks` notebooks.
+2. Subscribing to the model package in the [AWS Marketplace](https://aws.amazon.com/marketplace/seller-profile?id=seller-r7b33ivdczgs6) and using the `model_package_notebooks` notebooks. This is the recommended approach if you cannot access Hugging Face in your AWS account, or if you prefer to deploy with AWS CloudFormation.
 
 ## Contact
 
