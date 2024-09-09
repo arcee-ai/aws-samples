@@ -35,13 +35,26 @@ repos:
     hooks:
       - id: nbqa-black
         additional_dependencies: [black==23.3.0]
-        entry: bash -c 'nbqa-black "$@"; git add -u' --
+        entry: bash -c 'nbqa black "$@"; git add -u' --
       - id: nbqa-isort
         additional_dependencies: [isort==5.12.0]
-        entry: bash -c 'nbqa-isort "$@"; git add -u' --
+        entry: bash -c 'nbqa isort "$@"; git add -u' --
       - id: nbqa-flake8
         additional_dependencies: [flake8==6.0.0]
         args: [--max-line-length=120, "--extend-ignore=E501,E402,E231"]
+        entry: bash -c 'nbqa flake8 "$@"; git add -u' --
+      - id: nbqa-mypy
+        additional_dependencies: [mypy==1.7.1]
+        entry: bash -c 'nbqa mypy "$@"; git add -u' --
+      - id: nbqa-pyupgrade
+        additional_dependencies: [pyupgrade==3.17.0]
+
+  - repo: https://github.com/adamchainz/blacken-docs
+    rev: 1.18.0
+    hooks:
+      - id: blacken-docs
+        additional_dependencies:
+        - black==22.12.0
 
   - repo: https://github.com/mwouts/jupytext
     rev: v1.16.4b
@@ -75,3 +88,9 @@ repos:
     hooks:
       - id: pylint
         args: [--rcfile=.pylintrc]
+
+  - repo: https://github.com/asottile/pyupgrade
+    rev: v3.17.0
+    hooks:
+      - id: pyupgrade
+        args: [--py310-plus]
