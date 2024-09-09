@@ -52,7 +52,7 @@ repos:
           - black==23.3.0
 
   - repo: https://github.com/aws-cloudformation/cfn-lint
-    rev: v1.11.0  # Use the latest version available
+    rev: v1.12.4  # Use the latest version available
     hooks:
       - id: cfn-lint
         files: cloudformation/.*\.(json|yml|yaml)$
@@ -71,7 +71,7 @@ repos:
         entry: bash -c 'mypy "$@"; git add -u' --
 
   - repo: https://github.com/PyCQA/pylint
-    rev: v3.2.6
+    rev: v3.2.7
     hooks:
       - id: pylint
         args: [--rcfile=.pylintrc]
