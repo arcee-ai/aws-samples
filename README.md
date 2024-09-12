@@ -20,6 +20,10 @@ The following Arcee models are featured in the sample notebooks:
 
 6. [Arcee-Agent](https://huggingface.co/arcee-ai/Arcee-Agent): A 7B parameter model specifically designed for function calling and tool use, excelling at interpreting and executing function calls.
 
+7. Arcee-SuperNova: a 70B model outperforming Llama 70B-Instruct, as well Llama 405B, Claude Sonnet 3.5 and GPT-4o in many general benchmarks.
+
+8. [Llama-3.1-SuperNova-Lite](https://huggingface.co/arcee-ai/Llama-3.1-SuperNova-Lite): an 8B distilled version of the larger Llama-3.1-405B-Instruct model.
+
 ## Deployment options
 
 You can deploy these models on Amazon SageMaker in different ways:
