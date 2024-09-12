@@ -82,6 +82,20 @@ Parameters:
     Default: ""
     ConstraintDescription: ModelEnvironmentQuantize must be '', 'awq'
 
+  ModelDataDownloadTimeout:
+    Type: String
+    Description: The timeout for downloading the model data (in seconds)
+    AllowedPattern: "^([1-9][0-9]*|0)$"
+    Default: "1800"
+    ConstraintDescription: ModelDataDownloadTimeout must be a non-negative integer
+
+  ContainerStartupHealthCheckTimeout:
+    Type: String
+    Description: The timeout for the container startup health check (in seconds)
+    AllowedPattern: "^([1-9][0-9]*|0)$"
+    Default: "1800"
+    ConstraintDescription: ContainerStartupHealthCheckTimeout must be a non-negative integer
+
 Resources:
   SageMakerModel:
     Type: AWS::SageMaker::Model
@@ -107,6 +121,8 @@ Resources:
           ModelName: !GetAtt SageMakerModel.ModelName
           VariantName: AllTraffic
           InitialVariantWeight: 1
+          ModelDataDownloadTimeoutInSeconds: !Ref ModelDataDownloadTimeout
+          ContainerStartupHealthCheckTimeoutInSeconds: !Ref ContainerStartupHealthCheckTimeout
 
   SageMakerEndpoint:
     Type: AWS::SageMaker::Endpoint
