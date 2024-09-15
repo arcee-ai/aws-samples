@@ -28,14 +28,14 @@ The following Arcee models are featured in the sample notebooks:
 
 You can deploy these models on Amazon SageMaker in different ways:
 
-1. Deploy from the Hugging Face hub
+1. Deploy an Arcee model hosted on the[Hugging Face](https://huggingface.co/arcee-ai) hub
    * `model_notebooks`: sample notebooks
    * `cloudformation/create_endpoint_from_hf_model*.yaml`: sample AWS CloudFormation templates
-2. Deploy from a model artifact you have stored in S3
+2. Deploy a model artifact you have stored in S3
    * `cloudformation/create_endpoint_from_s3_model*.yaml`: sample AWS CloudFormation templates
-3. Deploy from a model package that you have built yourself (not an AWS Marketplace model package)
+3. Deploy a model package that you have built yourself (not an AWS Marketplace model package)
    * `cloudformation/create_endpoint_from_model_package*.yaml`: sample AWS CloudFormation templates
-4. Deploy from our [AWS Marketplace](https://aws.amazon.com/marketplace/seller-profile?id=seller-r7b33ivdczgs6) listings
+4. Deploy an Arcee model listed on the [AWS Marketplace](https://aws.amazon.com/marketplace/seller-profile?id=seller-r7b33ivdczgs6)
    * This is the recommended approach if you cannot access Hugging Face in your AWS account, or if you want to start from an official package built and tested by Arcee.
    * You first need to subscribe to the model
    * You can then deploy the model using the built-in option, or with the sample notebooks in `model_package_notebooks`
