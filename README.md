@@ -14,7 +14,7 @@ The following Arcee models are featured in the sample notebooks:
 
 3. [Arcee-Nova](https://huggingface.co/arcee-ai/Arcee-Nova): A large language model with performance approaching that of GPT-4 (as of May 2023), built on Qwen2-72B-Instruct.
 
-4. [Arcee-Spark](https://huggingface.co/arcee-ai/Arcee-Spark): A powerful 7B parameter model that outperforms many larger models, offering a 32 KB context size.
+4. [Arcee-Spark](https://huggingface.co/arcee-ai/Arcee-Spark): A powerful 7B parameter model that outperforms many larger models, offering a 32K context size.
 
 5. [Arcee-Lite](https://huggingface.co/arcee-ai/arcee-lite): A compact yet powerful 1.5B parameter model, ideal for embedded systems and resource-constrained environments.
 
