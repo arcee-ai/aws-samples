@@ -24,6 +24,8 @@ The following Arcee models are featured in the sample notebooks:
 
 8. [Llama-3.1-SuperNova-Lite](https://huggingface.co/arcee-ai/Llama-3.1-SuperNova-Lite): an 8B distilled version of the larger Llama-3.1-405B-Instruct model.
 
+9. [SuperNova-Medius](https://huggingface.co/arcee-ai/SuperNova-Medius): a 14B parameter language model developed by Arcee.ai, built on the Qwen2.5-14B-Instruct architecture.
+
 ## Deployment options
 
 You can deploy these models on Amazon SageMaker in different ways:
