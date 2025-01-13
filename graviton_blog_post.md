@@ -103,7 +103,7 @@ bin/llama-perplexity -m ../virtuoso-small/ggml-model-Q4_0.gguf -f wikitext-2-raw
 ```
 
 **Perplexity Results:**
-- 16-bit (F16): 6.2136 +/- 0.04043
+- 16-bit (F16): 5.8443 +/- 0.03782
 - 8-bit (Q8_0): 5.8518 +/- 0.03788
 - 4-bit (Q4_0): 6.2136 +/- 0.04043
 
