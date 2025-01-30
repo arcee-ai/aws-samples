@@ -1,6 +1,6 @@
-# Running Virtuoso-Small with llama.cpp
+# Running Virtuoso-Lite with llama.cpp
 
-This guide demonstrates how to run the [Virtuoso-Small model](https://huggingface.co/arcee-ai/Virtuoso-Small) using llama.cpp.
+This guide demonstrates how to run the [Virtuoso-Lite model](https://huggingface.co/arcee-ai/Virtuoso-Lite) using llama.cpp.
 
 ## System Requirements
 - Amazon Linux 2
@@ -26,7 +26,7 @@ huggingface-cli login
 
 4. Download the model:
 ```bash
-huggingface-cli download arcee-ai/Virtuoso-Small --local-dir virtuoso-small
+huggingface-cli download arcee-ai/Virtuoso-Lite --local-dir virtuoso-lite
 ```
 
 5. Build llama.cpp:
@@ -40,40 +40,40 @@ make -j16
 6. Convert and quantize the model:
 ```bash
 pip3 install -r requirements.txt
-python3 convert_hf_to_gguf.py ../virtuoso-small
-bin/llama-quantize ../virtuoso-small/Virtuoso-Small-F16.gguf Q4_0
-bin/llama-quantize ../virtuoso-small/Virtuoso-Small-F16.gguf Q8_0
+python3 convert_hf_to_gguf.py ../virtuoso-lite
+bin/llama-quantize ../virtuoso-lite/Virtuoso-Lite-10B-F16.gguf Q4_0
+bin/llama-quantize ../virtuoso-lite/Virtuoso-Lite-10B-F16.gguf Q8_0
 ```
 
 ## Performance Comparison
 
 ### 16-bit Model
 ```bash
-bin/llama-cli -m ../virtuoso-small/Virtuoso-Small-F16.gguf -n 512 -p "<|im_start|>system
+bin/llama-cli -m ../virtuoso-lite/Virtuoso-Lite-10B-F16.gguf -n 512 -p "<|im_start|>system
 You are a friendly and helpful AI assistant. Keep your answers precise and factual.<|im_end|>
 <|im_start|>user
 Explain step by step how the attention mechanism works in transformer models.
 <|im_end|>
-<|im_start|>assistant" --chat-template chatml -fa
+<|im_start|>assistant" --chat-template chatml -fa -no-cnv
 ```
 
 **Performance metrics:**
-- Prompt eval: 28.03 ms per token (35.67 tokens/sec)
-- Eval time: 123.01 ms per token (8.13 tokens/sec)
+- Prompt eval: 21.65 ms per token, 46.18 tokens per second
+- Eval time: 58.06 ms per token, 17.22 tokens per second
 
 ### 8-bit Model (Q8_0)
 ```bash
-bin/llama-cli -m ../virtuoso-small/ggml-model-Q8_0.gguf -n 512 -p "<|im_start|>system
+bin/llama-cli -m ../virtuoso-lite/ggml-model-Q8_0.gguf -n 512 -p "<|im_start|>system
 You are a friendly and helpful AI assistant. Keep your answers precise and factual.<|im_end|>
 <|im_start|>user
 Explain step by step how the attention mechanism works in transformer models.
 <|im_end|>
-<|im_start|>assistant" --chat-template chatml -fa
+<|im_start|>assistant" --chat-template chatml -fa -no-cnv
 ```
 
 **Performance metrics:**
-- Prompt eval: 15.04 ms per token (66.51 tokens/sec)
-- Eval time: 56.30 ms per token (17.76 tokens/sec)
+- Prompt eval: 12.03 ms per token, 83.16 tokens per second
+- Eval time: 35.10 ms per token, 28.49 tokens per second
 
 ### 4-bit Model (Q4_0)
 ```bash
@@ -82,12 +82,12 @@ You are a friendly and helpful AI assistant. Keep your answers precise and factu
 <|im_start|>user
 Explain step by step how the attention mechanism works in transformer models.
 <|im_end|>
-<|im_start|>assistant" --chat-template chatml -fa
+<|im_start|>assistant" --chat-template chatml -fa -no-cnv
 ```
 
 **Performance metrics:**
-- Prompt eval: 5.53 ms per token (180.92 tokens/sec)
-- Eval time: 31.40 ms per token (31.85 tokens/sec)
+- Prompt eval: 6.64 ms per token, 150.50 tokens per second
+- Eval time: 22.43 ms per token, 44.58 tokens per second
 
 ## Evaluating Model Quality
 
@@ -97,15 +97,16 @@ To evaluate the model's perplexity on WikiText-2:
 sh scripts/get-wikitext-2.sh
 
 # Run perplexity evaluation
-bin/llama-perplexity -m ../virtuoso-small/Virtuoso-Small-F16.gguf -f wikitext-2-raw/wiki.test.raw
-bin/llama-perplexity -m ../virtuoso-small/ggml-model-Q8_0.gguf -f wikitext-2-raw/wiki.test.raw
-bin/llama-perplexity -m ../virtuoso-small/ggml-model-Q4_0.gguf -f wikitext-2-raw/wiki.test.raw
+bin/llama-perplexity -m ../virtuoso-lite/Virtuoso-Lite-10B-F16.gguf -f wikitext-2-raw/wiki.test.raw
+bin/llama-perplexity -m ../virtuoso-lite/ggml-model-Q8_0.gguf -f wikitext-2-raw/wiki.test.raw
+bin/llama-perplexity -m ../virtuoso-lite/ggml-model-Q4_0.gguf -f wikitext-2-raw/wiki.test.raw
 ```
 
 **Perplexity Results:**
-- 16-bit (F16): 5.8443 +/- 0.03782
-- 8-bit (Q8_0): 5.8518 +/- 0.03788
-- 4-bit (Q4_0): 6.2136 +/- 0.04043
+- 16-bit (F16): 6.6953 +/- 0.04633
+- 8-bit (Q8_0): 6.7001 +/- 0.04640 (0.06% worse than F16)
+- 4-bit (Q4_0): 6.7627 +/- 0.04632 (1% worse than F16)
+
 
 Choose the quantization level based on your specific needs:
 - F16: Highest quality, largest size, slowest inference
