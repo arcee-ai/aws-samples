@@ -33,8 +33,8 @@ huggingface-cli download arcee-ai/Virtuoso-Lite --local-dir virtuoso-lite
 ```bash
 git clone https://github.com/ggerganov/llama.cpp
 cd llama.cpp
-cmake .
-make -j16
+cmake -B Build
+cmake --build build --config Release -j16
 ```
 
 6. Convert and quantize the model:
