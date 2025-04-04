@@ -4,32 +4,27 @@ This guide demonstrates how to run the [Virtuoso-Lite model](https://huggingface
 
 ## System Requirements
 - Amazon Linux 2
-- r8g.8xlarge instance
+- r8g instance (xlarge or larger)
 - At least 128GB of storage
 
 ## Installation Steps
 
 1. Install required dependencies:
 ```bash
-sudo yum install cmake gcc g++ git python3 python3-pip -y
+sudo yum install cmake gcc g++ git git-lfs python3 python3-pip python3-virtualenv -y
 ```
 
-2. Install Huggingface CLI and login:
+2. Install large file support for got
 ```bash
-pip3 install huggingface_hub
+git lfs install
 ```
 
-3. Login to Huggingface Hub:
+3. Clone the model repository:
 ```bash
-huggingface-cli login
+Agit clone https://huggingface.co/arcee-ai/Virtuoso-Lite
 ```
 
-4. Download the model:
-```bash
-huggingface-cli download arcee-ai/Virtuoso-Lite --local-dir virtuoso-lite
-```
-
-5. Build llama.cpp:
+4. Clone and build llama.cpp:
 ```bash
 git clone https://github.com/ggerganov/llama.cpp
 cd llama.cpp
@@ -37,24 +32,32 @@ cmake -B Build
 cmake --build build --config Release -j16
 ```
 
+5. Install python dependencies for llama.cpp
+```bash
+virtualenv env-llama-cpp
+source env-llama-cpp/bin/activate
+pip install --upgrade pip
+pip install -r requirements.txt
+```
+
 6. Convert and quantize the model:
 ```bash
 pip3 install -r requirements.txt
-python3 convert_hf_to_gguf.py ../virtuoso-lite
-bin/llama-quantize ../virtuoso-lite/Virtuoso-Lite-10B-F16.gguf Q4_0
-bin/llama-quantize ../virtuoso-lite/Virtuoso-Lite-10B-F16.gguf Q8_0
+python3 convert_hf_to_gguf.py ../Virtuoso-Lite
+bin/llama-quantize ../Virtuoso-Lite/Virtuoso-Lite-10B-F16.gguf Q4_0
+bin/llama-quantize ../Virtuoso-Lite/Virtuoso-Lite-10B-F16.gguf Q8_0
 ```
 
 ## Performance Comparison
 
 ### 16-bit Model
 ```bash
-bin/llama-cli -m ../virtuoso-lite/Virtuoso-Lite-10B-F16.gguf -n 512 -p "<|im_start|>system
-You are a friendly and helpful AI assistant. Keep your answers precise and factual.<|im_end|>
-<|im_start|>user
-Explain step by step how the attention mechanism works in transformer models.
-<|im_end|>
-<|im_start|>assistant" --chat-template chatml -fa -no-cnv
+bin/llama-cli -m ../Virtuoso-Lite/Virtuoso-Lite-10B-F16.gguf -n 512 -p "<|im_start|>system \
+You are a friendly and helpful AI assistant. Keep your answers precise and factual.<|im_end|> \
+<|im_start|>user \
+Explain step by step how the attention mechanism works in transformer models. \
+<|im_end|> \
+<|im_start|>assistant" --chat-template chatml -no-cnv
 ```
 
 **Performance metrics:**
@@ -63,12 +66,12 @@ Explain step by step how the attention mechanism works in transformer models.
 
 ### 8-bit Model (Q8_0)
 ```bash
-bin/llama-cli -m ../virtuoso-lite/ggml-model-Q8_0.gguf -n 512 -p "<|im_start|>system
-You are a friendly and helpful AI assistant. Keep your answers precise and factual.<|im_end|>
-<|im_start|>user
-Explain step by step how the attention mechanism works in transformer models.
-<|im_end|>
-<|im_start|>assistant" --chat-template chatml -fa -no-cnv
+bin/llama-cli -m ../Virtuoso-Lite/ggml-model-Q8_0.gguf -n 512 -p "<|im_start|>system \
+You are a friendly and helpful AI assistant. Keep your answers precise and factual.<|im_end|> \
+<|im_start|>user \
+Explain step by step how the attention mechanism works in transformer models. \
+<|im_end|> \
+<|im_start|>assistant" --chat-template chatml -no-cnv
 ```
 
 **Performance metrics:**
@@ -77,12 +80,12 @@ Explain step by step how the attention mechanism works in transformer models.
 
 ### 4-bit Model (Q4_0)
 ```bash
-bin/llama-cli -m ../virtuoso-small/ggml-model-Q4_0.gguf -n 512 -p "<|im_start|>system
-You are a friendly and helpful AI assistant. Keep your answers precise and factual.<|im_end|>
-<|im_start|>user
-Explain step by step how the attention mechanism works in transformer models.
-<|im_end|>
-<|im_start|>assistant" --chat-template chatml -fa -no-cnv
+bin/llama-cli -m ../Virtuoso-Lite/ggml-model-Q4_0.gguf -n 512 -p "<|im_start|>system \
+You are a friendly and helpful AI assistant. Keep your answers precise and factual.<|im_end|> \
+<|im_start|>user \
+Explain step by step how the attention mechanism works in transformer models. \
+<|im_end|> \
+<|im_start|>assistant" --chat-template chatml -no-cnv
 ```
 
 **Performance metrics:**
@@ -111,4 +114,4 @@ bin/llama-perplexity -m ../virtuoso-lite/ggml-model-Q4_0.gguf -f wikitext-2-raw/
 Choose the quantization level based on your specific needs:
 - F16: Highest quality, largest size, slowest inference
 - Q8_0: Balanced performance and quality
-- Q4_0: Fastest inference, smallest size, potentially a bit lower quality
+- Q4_0: Fastest inference, smallest size
