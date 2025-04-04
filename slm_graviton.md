@@ -21,7 +21,7 @@ git lfs install
 
 3. Clone the model repository:
 ```bash
-Agit clone https://huggingface.co/arcee-ai/Virtuoso-Lite
+git clone https://huggingface.co/arcee-ai/Virtuoso-Lite
 ```
 
 4. Clone and build llama.cpp:
